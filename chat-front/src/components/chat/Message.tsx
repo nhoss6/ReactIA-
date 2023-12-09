@@ -12,14 +12,13 @@ interface Props {
 const Message = ({ message, isMe }: Props) => {
   return (
     <div className={`chat ${isMe ? "chat-end" : "chat-start"}`}>
-      <div className="chat-header">
+      <div className="rainbow-text">
         {message.username}
         <time className="text-xs opacity-50">{message.timeSent}</time>
       </div>
       <div
-        className={`chat-bubble ${
-          isMe ? "chat-bubble-primary" : "chat-bubble-secondary"
-        }`}
+        className={`chat-bubble ${isMe ? "chat-bubble-primary" : "chat-bubble-secondary"
+          }`}
       >
         {message.content}
       </div>

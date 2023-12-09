@@ -1,66 +1,18 @@
-import {
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  SubscribeMessage,
-  WebSocketGateway,
-  WebSocketServer,
-} from '@nestjs/websockets';
-import { Socket } from 'socket.io';
+import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { Server } from 'socket.io';
+import { OpenAIService } from '../openai/openai.service';
 
-interface IMessage {
-  username: string;
-  content: string;
-  timeSent: string;
-}
-
-@WebSocketGateway({ cors: true })
-export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
+@WebSocketGateway()
+export class ChatGateway {
   @WebSocketServer()
-  server: Socket;
+  server: Server;
 
-  clients: { client: Socket; username?: string }[] = [];
-  chatMessages: IMessage[] = [];
+  constructor(private openAIService: OpenAIService) { }
 
-  @SubscribeMessage('message')
-  handleMessage(client: any, payload: any): string {
-    this.server.emit('message', payload);
-    console.log({ payload });
-    return 'Hello world!';
+  async handleTranslateRequest(client: any, payload: { text: string; targetLanguage: string }) {
+    const translatedText = await this.openAIService.translate(payload.text, payload.targetLanguage);
+    client.emit('translationResult', translatedText);
   }
 
-  @SubscribeMessage('chat-message')
-  handleChatMessage(client: any, payload: IMessage): void {
-    const c = this.clients.find((c) => c.client.id === client.id);
-    if (c.username) {
-      this.server.emit('chat-message', {
-        ...payload,
-        username: c.username,
-      });
-      this.chatMessages.push({
-        ...payload,
-        username: c.username,
-      });
-    }
-  }
-
-  @SubscribeMessage('username-set')
-  handleUsernameSet(client: any, payload: any): void {
-    const c = this.clients.find((c) => c.client.id === client.id);
-    if (c) {
-      c.username = payload.username;
-    }
-  }
-
-  handleConnection(client: Socket) {
-    console.log('client connected ', client.id);
-    this.clients.push({
-      client,
-    });
-    client.emit('messages-old', this.chatMessages);
-  }
-
-  handleDisconnect(client: any) {
-    console.log('client disconnected ', client.id);
-    this.clients = this.clients.filter((c) => c.client.id !== client.id);
-  }
+  // Ajoutez ici d'autres méthodes pour gérer la communication en temps réel
 }

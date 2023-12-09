@@ -4,8 +4,12 @@ import SendMessage from "@/components/chat/SendMessage";
 import Username from "@/components/chat/Username";
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
+import '../../styles/Chat.css';
 
-const socket = io("http://localhost:3000");
+const socket = io("http://localhost:3000", {
+  withCredentials: true,
+  transports: ["websocket", "polling"],
+});
 
 const Chat = () => {
   const [messages, setMessages] = useState([]);
@@ -27,12 +31,20 @@ const Chat = () => {
 
   return (
     <div>
-      <h1>Chat</h1>
-      <Username socket={socket} setUsername={setUsername} />
-      <SendMessage socket={socket} username={username} />
-      <Messages messages={messages} username={username} />
+      <div className="chat-container">
+        <div style={{ backgroundColor: 'grey', padding: '20px', }}>
+          <h1 className="chat-header">Chat</h1>
+          <p>utilisateur</p>
+          <Username socket={socket} setUsername={setUsername} />
+          <p>Message</p>
+          <SendMessage socket={socket} username={username} />
+
+          <Messages messages={messages} username={username} />
+        </div>
+      </div>
     </div>
   );
 };
 
 export default Chat;
+
